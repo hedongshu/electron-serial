@@ -15,18 +15,23 @@
         "node": ">=16.0.0"
     },
     "dependencies": {
+        "electron-store": "^8.0.1",
+        "highlight.js": "^11.3.1",
         "serialport": "10.0.0",
-        "vue": "^3.2.22"
+        "vue": "^3.2.22",
+        "vue-router": "^4.0.12"
     },
     "devDependencies": {
-        "electron-packager": "^15.4.0",
         "@types/serialport": "^8.0.2",
+        "@vicons/ionicons5": "^0.11.0",
         "@vitejs/plugin-vue": "^1.9.4",
         "chalk": "^4.1.2",
         "electron": "16.0.0",
         "electron-builder": "^22.13.1",
+        "electron-packager": "^15.4.0",
         "electron-rebuild": "^3.2.5",
         "naive-ui": "^2.23.1",
+        "sass": "^1.45.1",
         "typescript": "^4.4.4",
         "vite": "^2.6.14"
     },
