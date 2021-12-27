@@ -1,53 +1,81 @@
 import * as electron from 'electron';
-const SerialPort = require('serialport')
+// const SerialPort = require('serialport')
+import serialport, { OpenOptions } from 'serialport'
 const readline = require('@serialport/parser-readline')
 import { IPortData, IReceivedData } from 'types';
 
 export class SerialCommunication {
-    private port!: typeof SerialPort;
+    private port!: serialport;
+    private parser: any;
+    public first = true;
 
     constructor() {
-        this.loadPorts();
     }
 
-    public async loadPorts(outChannel?: electron.IpcMainEvent) {
-        const ports = await SerialPort.list();
-        if (outChannel) {
-            outChannel.reply('serial-ports', JSON.stringify(ports.map((x: { path: any; }) => x.path)));
-        }
+    public async loadPorts() {
+        const ports = await serialport.list();
+        return JSON.stringify(ports.map((x: { path: any; }) => x.path))
     }
 
-    public open(data: IPortData, outChannel: electron.IpcMainEvent) {
-        this.port = new SerialPort(data.port, {
-            baudRate: data.baudRate
-        }, (err: { message: any; }) => {
+    public async send(req: any) {
+        return new Promise((resolve, reject) => {
+            if (this.isOpen()) {
+                // 发送
+                console.log('send', req)
+                this.port.write(req.data, req.encoding, (err, result) => {
+                    this.first = true
+                    if (err) {
+                        console.log('Error while sending message : ' + err);
+                        reject(err)
+                    }
+                    if (result) {
+                        console.log('Response received after sending message : ' + result);
+                        resolve(result)
+                    }
+                })
+            } else {
+                reject()
+            }
+        })
+
+    }
+
+    public open(data: IPortData, event: electron.IpcMainEvent) {
+        this.port = new serialport(data.port, {
+            baudRate: data.baudRate,
+            parity: data.parity,
+            dataBits: data.dataBits,
+            stopBits: data.stopBits
+        }, (err) => {
             if (err) {
-                console.log('SerialPort.open error', err);
-                outChannel.reply('serial-error', err.message);
+                event.reply('serial-error', (err.message));
             }
         });
 
-        const parser = new readline();
-        this.port.pipe(parser);
+
 
         this.port.on('open', () => {
             try {
-                outChannel.reply('serial-opened', 'opened');
+                event.reply('serial-opened', 'opened');
             } catch (err) {
                 console.log('IpcMainEvent: failed to respond "serial port opened"');
             }
         });
 
-        this.port.on('close', () => {
+        this.port.on('error', (error) => {
             try {
-                outChannel.reply('serial-closed', 'closed');
+                event.reply('serial-error', JSON.stringify(error.message));
             } catch (err) {
-                console.log('IpcMainEvent: failed to respond "serial port closed"');
+                console.log('IpcMainEvent: failed to respond "serial port error"');
             }
         });
 
-        let first = true;
-        parser.on('data', (line: string) => {
+
+        this.parser = new readline({ delimiter: '\r\n' });
+        this.port.pipe(this.parser);
+
+
+        this.parser.on('data', (line: string) => {
             const outData: IReceivedData = {
                 timestamp: new Date().toISOString(),
                 port: data.port,
@@ -56,15 +84,13 @@ export class SerialCommunication {
                 data: line.split(','),
                 raw: line
             };
-
-            if (first) {
-                first = false;
+            if (this.first) {
+                this.first = false;
                 outData.type = 'headers';
                 outData.data = line.split(',');
             }
-
             try {
-                outChannel.reply('serial-data', JSON.stringify(outData));
+                event.reply('serial-data', JSON.stringify(outData));
             } catch (err) {
                 console.log('IpcMainEvent: failed to respond "serial data"');
             }
@@ -88,4 +114,5 @@ export class SerialCommunication {
     public isOpen(): boolean {
         return this.port && this.port.isOpen;
     }
+
 }

@@ -6,14 +6,20 @@ declare module '*.vue' {
     const component: DefineComponent<{}, {}, any>
     export default component
 }
+interface IcommandBtn {
+    name: string
+    command: string
+    tips: string
+    encoding: 'ascii' | 'utf8' | 'utf16le' | 'ucs2' | 'base64' | 'binary' | 'hex'
+}
 
-export interface IPortData {
-    port: string;
-    baudRate: number;
+interface IcommandBtnList {
+    group: string
+    commands: IcommandBtn[]
 }
-export interface IReceivedData extends IPortData {
-    timestamp: string;
-    type: 'values' | 'headers';
-    data: string[];
-    raw: string;
+
+interface IsendMsgType {
+    data: string | number[] | Buffer
+    encoding: 'ascii' | 'utf8' | 'utf16le' | 'ucs2' | 'base64' | 'binary' | 'hex'
 }
+declare module 'vue3-highlightjs';

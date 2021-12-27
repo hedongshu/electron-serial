@@ -9,9 +9,15 @@ declare namespace NodeJS {
 
 export interface IPortData {
     port: string;
-    baudRate: number;
+    baudRate: number
+    parity?: "none" | "even" | "mark" | "odd" | "space" | undefined
+    dataBits?: 8 | 7 | 6 | 5 | undefined
+    stopBits?: 1 | 2 | undefined
+    autoOpen?: boolean
 }
-export interface IReceivedData extends IPortData {
+export interface IReceivedData {
+    port: string;
+    baudRate: number
     timestamp: string;
     type: 'values' | 'headers';
     data: string[];

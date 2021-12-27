@@ -58,19 +58,19 @@ let menuTemplate: Array<(MenuItemConstructorOptions)> = [
             }
         ]
     },
-    {
-        label: '视图',
-        role: 'viewMenu',
-        submenu: [
-            {
-                label: '刷新端口列表',
-                accelerator: 'Ctrl + R',
-                click: function () {
-                    (win as BrowserWindow).webContents.send('reloadPorts');
-                }
-            }
-        ]
-    },
+    // {
+    //     label: '视图',
+    //     role: 'viewMenu',
+    //     submenu: [
+    //         {
+    //             label: '刷新端口列表',
+    //             accelerator: 'Ctrl + R',
+    //             click: function () {
+    //                 (win as BrowserWindow).webContents.send('reloadPorts');
+    //             }
+    //         }
+    //     ]
+    // },
     {
         label: '帮助',
         role: 'help',
@@ -79,13 +79,13 @@ let menuTemplate: Array<(MenuItemConstructorOptions)> = [
             {
                 label: '问题反馈',
                 click: function () {
-                    shell.openExternal('https://github.com/rymcu/nebula-helper/issues')
+                    shell.openExternal('http://www.thcreate.com/')
                 }
             },
             {
                 label: '关于我们',
                 click: function () {
-                    shell.openExternal('https://rymcu.com')
+                    shell.openExternal('http://www.thcreate.com/')
                 }
             }
         ]
@@ -94,6 +94,11 @@ let menuTemplate: Array<(MenuItemConstructorOptions)> = [
 
 async function bootstrap() {
     win = new BrowserWindow({
+        title: '天航',
+        width: 980,
+        height: 628,
+        minHeight: 628,
+        minWidth: 980,
         webPreferences: {
             nodeIntegration: false,
             webSecurity: false,
@@ -112,7 +117,6 @@ async function bootstrap() {
         win.maximize();
         (win as BrowserWindow).webContents.openDevTools()
     }
-
 }
 app.whenReady().then(bootstrap)
 
@@ -135,17 +139,30 @@ app.on('second-instance', () => {
 const menu = Menu.buildFromTemplate(menuTemplate);
 Menu.setApplicationMenu(menu);
 
+
 // receive events from the renderer process
-ipcMain.on('serial-connect', async (channel, arg) => {
+
+ipcMain.on('serial-connect', (event, args) => {
     if (serial.isOpen()) {
-        await serial.close();
+        serial.close();
     }
-    serial.open(JSON.parse(arg), channel);
+    serial.open(JSON.parse(args), event);
 });
 
-ipcMain.on('serial-disconnect', () => serial.close());
+ipcMain.handle('serial-disconnect', async () => {
+    return serial.close()
+});
 
-ipcMain.on('serial-refresh-ports', (channel) => serial.loadPorts(channel));
+ipcMain.handle('serial-refresh-ports', async (Event, ...args) => {
+    return serial.loadPorts()
+});
+
+ipcMain.handle('send-command', async (Event, args) => {
+    console.log('args', args)
+    return await serial.send(args)
+})
+
+
 // @TODO
 // auto update
 /* if (app.isPackaged) {

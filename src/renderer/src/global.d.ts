@@ -1,6 +1,7 @@
 
 export { }
-import serial from 'serialport'
+import { BrowserWindow, Dialog } from 'electron'
+
 
 
 
@@ -10,6 +11,10 @@ declare global {
         fs: typeof import('fs')
         ipcRenderer: import('electron').IpcRenderer
         removeLoading: () => void
-        serial: serial
+        dialog: Dialog
+        BrowserWindow: BrowserWindow
     }
 }
+
+
+

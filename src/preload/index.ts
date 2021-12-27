@@ -1,5 +1,5 @@
 // import fs from 'fs'
-import { contextBridge, ipcMain, ipcRenderer, IpcRenderer } from 'electron'
+import { contextBridge, dialog, ipcMain, ipcRenderer, IpcRenderer, BrowserWindow } from 'electron'
 import { domReady } from './utils'
 import { useLoading } from './loading'
 const fs = require('fs')
@@ -13,6 +13,8 @@ domReady().then(() => {
 
 // --------- Expose some API to Renderer process. ---------
 contextBridge.exposeInMainWorld('fs', fs)
+contextBridge.exposeInMainWorld('dialog', dialog)
+contextBridge.exposeInMainWorld('BrowserWindow', BrowserWindow)
 contextBridge.exposeInMainWorld('removeLoading', removeLoading)
 contextBridge.exposeInMainWorld('ipcRenderer', {
     ...ipcRenderer,
